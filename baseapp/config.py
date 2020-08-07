@@ -8,4 +8,5 @@ class ProdConfig(object):
 
 class DevConfig(object):
     DEBUG = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///usertable.db'
 

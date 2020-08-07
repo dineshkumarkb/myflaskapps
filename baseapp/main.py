@@ -1,9 +1,28 @@
 from flask import Flask
 from config import DevConfig
+from flask_sqlalchemy import SQLAlchemy
+import platform,os, sys
 
 
 app = Flask(__name__)
 app.config.from_object(DevConfig)
+db = SQLAlchemy(app)
+
+
+class Employee(db.Model):
+
+    id = db.Column(db.Integer(), primary_key=True)
+    username = db.Column(db.String(20))
+    password = db.Column(db.String(20))
+
+    __tablename__ = "employee"
+
+    def __init__(self, **kwargs):
+        super(Employee, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return f" Employee {self.username} "
+
 
 
 @app.route("/")
