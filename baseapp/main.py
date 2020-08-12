@@ -17,8 +17,9 @@ class Employee(db.Model):
 
     __tablename__ = "employee"
 
-    def __init__(self, **kwargs):
-        super(Employee, self).__init__(**kwargs)
+    def __init__(self, username, **kwargs):
+        super(Employee, self).__init__(username,**kwargs)
+        self.username = username
 
     def __repr__(self):
         return f" Employee {self.username} "
