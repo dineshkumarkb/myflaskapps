@@ -20,6 +20,9 @@ class Employee(db.Model):
     id = db.Column(db.Integer,primary_key=True)
     username = db.Column(db.String(20))
     password = db.Column(db.String(20))
+    posts = db.relationship('Post',
+                            backref='employee',
+                            lazy='dynamic')
 
     __tablename__ = "employee"
 
@@ -28,6 +31,22 @@ class Employee(db.Model):
 
     def __repr__(self):
         return f"Employee {self.username}"
+
+
+class Post(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String)
+    text = db.Column(db.Text())
+    publish_date = db.Column(db.DateTime())
+    emp_id = db.Column(db.Integer, db.ForeignKey('employee.id'))
+
+    def __init__(self, **kwargs):
+        super(Post, self).__init__(**kwargs)
+        #self.title = title
+
+    def __repr__(self):
+        return f"Post {self.title}"
 
 
 if __name__ == "__main__":
