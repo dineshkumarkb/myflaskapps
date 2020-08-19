@@ -1,7 +1,8 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from config import DevConfig
 from flask_migrate import Migrate
+from sqlalchemy import func
 
 app = Flask(__name__)
 app.config.from_object(DevConfig)
@@ -9,11 +10,32 @@ db = SQLAlchemy(app)
 migrate = Migrate(app,db)
 
 
+def sidebar_data():
+    recent = Post.query.order_by(Post.publish_date.desc()).limit(5).all()
+    print(f" The recent values are {recent}")
+    top_tags = db.session.query(Tag, func.count(tags.c.post_id)).label('total').join(tags).group_by(
+        Tag).order_by('total DESC').limit(5).all()
+    return recent, top_tags
+
+
 
 
 @app.route("/", methods=['GET'])
 def index():
     return '<h1>This is a base postgress app</h1>'
+
+
+@app.route("/<int:page>", methods=['GET'])
+def home(page=1):
+    posts = Post.query.order_by(Post.publish_date.desc()).paginate(page,
+                                                                   app.config['POSTS_PER_PAGE'],
+                                                                   error_out=False)
+    print(f" The post value is {posts}")
+    recent, top_tags = sidebar_data()
+    render_template('home.html',
+                    posts=posts,
+                    recent=recent,
+                    top_tags=top_tags)
 
 
 class Employee(db.Model):
@@ -84,6 +106,10 @@ class Tag(db.Model):
 
     def __repr__(self):
         return f"Tag {self.name}"
+
+
+
+
 
 
 if __name__ == "__main__":
