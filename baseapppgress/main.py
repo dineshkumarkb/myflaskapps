@@ -18,8 +18,6 @@ def sidebar_data():
     return recent, top_tags
 
 
-
-
 @app.route("/", methods=['GET'])
 def index():
     return '<h1>This is a base postgress app</h1>'
@@ -38,14 +36,49 @@ def home(page=1):
                     top_tags=top_tags)
 
 
+@app.route("/post/<int:post_id>")
+def post_by_id(post_id):
+    posts = Post.query.get_or_404(post_id)
+    recent, top_tags = sidebar_data()
+    return render_template('post.html',
+                           posts=posts,
+                           recent=recent,
+                           top_tags=top_tags)
+
+
+@app.route("/post/posts_by_user/<string:username>")
+def post_by_user(username):
+    user = Employee.query.filter(Employee.username == username).first_or_404()
+    posts = user.posts.order_by(Post.publish_date.desc()).all()
+    recent, top_tags = sidebar_data()
+    return render_template('user.html',
+                           user=user,
+                           posts=posts,
+                           recent=recent,
+                           top_tags=top_tags)
+
+
+@app.route("/post/posts_by_tag/<string:tag_name>")
+def posts_by_tag(tag_name):
+    tags = Tag.query.filter(Tag.name == tag_name).first_or_404()
+    posts = tags.posts.order_by(Post.publish_date.desc()).all()
+    recent, top_tags = sidebar_data()
+    return render_template('tag.html',
+                           tags=tags,
+                           posts=posts,
+                           recent=recent,
+                           top_tags=top_tags)
+
+
 class Employee(db.Model):
 
-    id = db.Column(db.Integer,primary_key=True)
-    username = db.Column(db.String(20), nullable=False, unique=True)
-    password = db.Column(db.String(20),nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(), nullable=False, unique=True)
+    password = db.Column(db.String(), nullable=False)
     posts = db.relationship('Post',
                             backref='employee',
-                            lazy='dynamic')
+                            lazy='dynamic',
+                            cascade="all,delete")
 
     __tablename__ = "employee"
 
@@ -71,7 +104,7 @@ class Post(db.Model):
                                lazy='dynamic')
     tags = db.relationship('Tag',
                            secondary=tags,
-                           backref=db.backref('posts', lazy='dynamic'))
+                           backref=db.backref('posts', lazy='dynamic', cascade="all,delete"))
 
     def __init__(self, **kwargs):
         super(Post, self).__init__(**kwargs)
@@ -93,9 +126,6 @@ class Comment(db.Model):
         return f"Comment {self.name}"
 
 
-
-
-
 class Tag(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
@@ -106,10 +136,6 @@ class Tag(db.Model):
 
     def __repr__(self):
         return f"Tag {self.name}"
-
-
-
-
 
 
 if __name__ == "__main__":
