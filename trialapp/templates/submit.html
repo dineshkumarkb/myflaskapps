@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>My Form</title>
+  </head>
+  <body>
+   <form  method="post">
+     {{ form.csrf_token }}
+     {{ form.author}}
+     {{ form.email }}
+     <input type="submit" name="mysubmit" value="submit">
+
+     {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <ul class="flashes">
+             {% for message in messages %}
+              <div class="message_flash">{{ message }}</div>
+             {% endfor %}
+         </ul>
+       {% endif %}
+       {% endwith %}
+
+   </form>
+  </body>
+</html>
