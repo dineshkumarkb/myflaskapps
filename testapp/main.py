@@ -32,7 +32,16 @@ def index():
     return render_template('index.html', form=user_form)
 
 
+@app.route("/", methods=['GET', 'POST'])
+def landing():
+    print("Landing")
+    myform = UserForm()
+    if request.method == 'POST':
+        if myform.validate_on_submit():
+            print(f" Form validated ")
+            return redirect(url_for('landing'))
 
+    return render_template('helpers.html', form=myform)
 
 
 if __name__ == "__main__":
