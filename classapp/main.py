@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, redirect
+from flask import Flask, render_template, url_for, redirect, jsonify
 from flask.views import View
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField
@@ -11,7 +11,7 @@ import uuid
 from flask_sqlalchemy import SQLAlchemy
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import UUID
-import os
+import os, json
 
 
 
@@ -45,17 +45,18 @@ class InputProcessor(View):
 
     def dispatch_request(self):
         emp_form = EmployeeForm()
-        if emp_form.validate_on_submit():
-            emp_id = get_uuid()
-            name = emp_form.name.data
-            password = emp_form.password.data
-            encrypted_password = bcrypt.generate_password_hash(password)
-            email = emp_form.email.data
-            emp_dict = dict(emp_id=get_uuid(), name=name, password=encrypted_password, email=email)
-            add_employees(emp_dict=emp_dict)
-            #print(f" Received emp data {emp_id}, {name}, {email}, {encrypted_password}")
-            return redirect(url_for("inputprocessor"))
-        return render_template(self.template_name, form=emp_form)
+        #if emp_form.validate_on_submit():
+        emp_id = get_uuid()
+        name = emp_form.name.data
+        password = emp_form.password.data
+        encrypted_password = bcrypt.generate_password_hash(password)
+        email = emp_form.email.data
+        emp_dict = dict(emp_id=get_uuid(), name=name, password=encrypted_password, email=email)
+        add_employees(emp_dict=emp_dict)
+        print(f" Received emp data {emp_id}, {name}, {email}, {encrypted_password}")
+        #return redirect(url_for("inputprocessor"))
+        return jsonify(f" Form validation failed"), 500
+        #return render_template(self.template_name, form=emp_form)
 
 
 def add_employees(emp_dict):
@@ -70,6 +71,27 @@ def add_employees(emp_dict):
         db.session.commit()
     except Exception as e:
         print(f" Error while adding to db {e}")
+
+
+class GetEmployees(View):
+
+    methods = ["GET"]
+
+    def dispatch_request(self):
+        emp = EmployeeData.query.all()
+        emp_list = list()
+        for e in emp:
+            emp_data = dict()
+            emp_data["name"] = e.name
+            emp_data["empid"] = e.emp_id
+            emp_data["email"] = e.email
+            emp_list.append(emp_data)
+
+
+        #emp_dict = dict(emp)
+        #print(f" The emp data is {emp_dict} ")
+        return jsonify({"all_employees": emp_list}), 200
+        #return json.dumps(emp_list, default=str, sort_keys=True, indent=4)
 
 ################################## models ########################################
 
@@ -94,4 +116,5 @@ class Organization(db.Model):
 if __name__ == "__main__":
     app.add_url_rule("/", view_func=InputProcessor.as_view("inputprocessor",
                                                            template_name="landing.html"))
+    app.add_url_rule("/getallemps", view_func=GetEmployees.as_view("getemployees"))
     app.run(debug=True)
