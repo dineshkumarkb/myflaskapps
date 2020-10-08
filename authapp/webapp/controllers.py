@@ -21,7 +21,7 @@ class UserPost(View):
         if myform.validate_on_submit():
             user_name = myform.name.data
             print(f" Received username {user_name} ")
-            return render_template(url_for("index_page"))
+            return render_template("landing.html", form=myform)
         return render_template("landing.html", form=myform)
 
 
